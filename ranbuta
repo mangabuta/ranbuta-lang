@@ -1,0 +1,161 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'r-fxxk'
+
+class String
+  def numeric?
+    Float(self) != nil rescue false
+  end
+end
+
+class ExBrainfuck < Brainfuck
+  def initialize(options = {})
+    self.class.default_mapping.each do |key, default|
+      operations[key] = options.has_key?(key) ? options[key] : default
+    end
+    self.class.ex_default_mapping.each do |key, default|
+      ex_operations[key] = options.has_key?(key) ? options[key] : default
+    end
+  end
+
+  def self.ex_mapping
+    @ex_bf_operations ||= { asg: '#(\d+)' }
+  end
+
+  def self.ex_default_mapping
+    @ex_default_mapping ||= ex_mapping.clone
+  end
+
+  def ex_operations
+    @ex_operations ||= {}
+  end
+
+  def ex_default_regs
+    @ex_default_regs ||= self.class.ex_mapping.map { |k,v| [k, Regexp.compile(v)] }.to_h
+  end
+
+  def ex_regs
+    @ex_regs ||= ex_operations.map { |k,v| [k, Regexp.compile(v)] }.to_h
+  end
+
+  ex_default_mapping.keys.each do |op|
+    define_method(op) do
+      instance_variable_get(:@ex_operations)[op]
+    end
+  end
+
+  def compile(src)
+    ExBrainfuck.new.translate(self, src)
+  end
+
+  def translate(other, src)
+    other = other.new if other.kind_of?(Class)
+    cur = 0
+    inv = other.operations.invert
+    reg = Regexp.compile "(#{other.operations.values.map{ |v| Regexp.quote(v) }.join('|')}|#{other.ex_operations.values.join('|')})"
+    dst = ''
+    while matches = reg.match(src, cur)
+      op = inv[matches[1]]
+      if op.nil?
+        case matches[1]
+        when other.ex_regs[:asg]
+          dst += matches[1].gsub(other.ex_regs[:asg], '#\1')
+        end
+      else
+        dst += operations[op]
+      end
+      cur = src.index(reg, cur) + matches[1].length
+    end
+    dst
+  end
+
+  def fuck(src)
+    src = compile(src)
+    ptr = 0
+    cur = 0
+    cell = Array.new(3000) { 0 }
+    output = []
+    inv = self.class.bf_mapping.invert
+    reg = Regexp.compile "(#{self.class.bf_mapping.values.map{ |v| Regexp.quote(v) }.join('|')}|#{self.class.ex_mapping.values.map{ |v| v }.join('|')})"
+    while matches = reg.match(src, cur)
+      next_cur = nil
+      case inv[matches[1]]
+      when nil
+        case matches[1]
+        when ex_default_regs[:asg]
+          cell[ptr] = matches[2].to_i
+        end
+      when :nxt
+        ptr += 1
+      when :prv
+        ptr -= 1
+      when :inc
+        cell[ptr] += 1
+      when :dec
+        cell[ptr] -= 1
+      when :put
+        output << cell[ptr].chr(Encoding::UTF_8)
+      when :get
+        s = gets.chomp
+        cell[ptr] = s.numeric? ? s.to_i : s.ord
+      when :opn
+        if cell[ptr] == 0
+          open_count = 1
+          buf_cur = cur
+          while open_count > 0
+            open_count.times do
+              next_cur = src.index(self.class.bf_mapping[:cls], buf_cur)
+              open_count = src[buf_cur+1..next_cur].count(self.class.bf_mapping[:opn])
+              buf_cur = next_cur
+            end
+          end
+          next_cur = next_cur + 1
+        end
+      when :cls
+        close_count = 1
+        buf_cur = cur
+        while close_count > 0
+          close_count.times do
+            next_cur = src.rindex(self.class.bf_mapping[:opn], buf_cur)
+            close_count = src[next_cur..buf_cur-1].count(self.class.bf_mapping[:cls])
+            buf_cur = next_cur
+          end
+        end
+      end
+      cur = next_cur || src.index(reg, cur) + matches[1].length
+    end
+    output.join
+  end
+
+  class << self
+    ExBrainfuck.ex_default_mapping.keys.each do |op|
+      define_method(op) do |val|
+        ex_default_mapping[op] = val
+      end
+    end
+    ExBrainfuck.ex_default_mapping.keys.each do |op|
+      define_method(op) do |val|
+        ex_default_mapping[op] = val
+      end
+    end
+  end
+end
+
+class Ranbuta < ExBrainfuck
+  nxt 'はあまじはあ'
+  prv 'くそげ'
+  inc 'ｼﾞｭァﾜｸﾙｸﾙ'
+  dec 'あやまって？'
+  opn 'ねぇねぇ'
+  cls 'なになに？'
+  get 'らんらん♪'
+  put '出荷よー'
+  asg 'つ(\d+)円'
+end
+
+src = ARGF.read
+src = src.each_line.map { |line| $1 if line =~ /^\(\´[・；]ω[・；]｀\)(.+)/ }
+
+
+puts Ranbuta.new.fuck(src.to_s)
