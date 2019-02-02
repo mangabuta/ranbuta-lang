@@ -3,7 +3,9 @@
 
 # インストール手順
 ## Windows
-↓ここから実行ファイルをダウンロードして好きな所に置く。
+[ここからzipファイルをダウンロードして好きな所に解凍する](https://github.com/mangabuta/ranbuta-lang/releases/tag/v1.0.0)
+
+
 
 ## Mac, Linux
 ターミナルで以下のコマンドを入力。
@@ -14,10 +16,10 @@ $ bundle install --path vendor/bundle
 
 # つかいかた
 ## Windows
-コマンドプロンプトで以下のように実行できます。
+コマンドプロンプトでzipを解凍したディレクトリに移動して以下のように実行できます。
 `sample.ranbuta`を自分で作ったらん豚言語ファイルに置きかえて下さい。
 ```
-> ranbuta.exe sample.ranbuta
+> ranbuta sample.ranbuta
 ```
 ## Mac, Linux
 ターミナルで以下のように実行できます。
