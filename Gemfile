@@ -3,4 +3,4 @@
 source 'https://rubygems.org'
 
 gem 'r-fxxk'
-gem 'ocra', platforms: :mswin
+gem 'ocra', platforms: [:mingw, :x64_mingw]
