@@ -1,8 +1,7 @@
-#!/usr/bin/env ruby
+﻿#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require 'r-fxxk'
-require 'rubygems'
 exit if Object.const_defined?(:Ocra)
 
 class String

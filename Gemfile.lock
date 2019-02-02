@@ -1,13 +1,16 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    ocra (1.3.10)
     r-fxxk (0.4.0)
 
 PLATFORMS
   ruby
+  x64-mingw32
 
 DEPENDENCIES
+  ocra
   r-fxxk
 
 BUNDLED WITH
-   1.17.2
+   1.17.3
